@@ -101,10 +101,23 @@ def index():
         name = request.form.get('subject_name')
         exam_date = request.form.get('exam_date')
         syllabus_text = request.form.get('syllabus_text')
+        syllabus_file = request.files.get('syllabus_file')
+        
+        filename = None
+        if syllabus_file and syllabus_file.filename != '':
+            filename = secure_filename(syllabus_file.filename)
+            syllabus_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            
+            if not syllabus_text and filename.endswith('.txt'):
+                try:
+                    with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'r') as f:
+                        syllabus_text = f.read()
+                except:
+                    pass
         
         if name and exam_date:
-            cursor = db.execute('INSERT INTO subject (user_id, name, exam_date) VALUES (?, ?, ?)', 
-                                (user_id, name, exam_date))
+            cursor = db.execute('INSERT INTO subject (user_id, name, exam_date, syllabus_file) VALUES (?, ?, ?, ?)', 
+                                (user_id, name, exam_date, filename))
             subject_id = cursor.lastrowid
             
             if syllabus_text:
@@ -119,13 +132,20 @@ def index():
                     db.execute('INSERT INTO topic (subject_id, name) VALUES (?, ?)', (subject_id, t))
             
             db.commit()
-            flash(f'Successfully scheduled "{name}"!', 'success')
+            
+            # Automatically generate/update timetable
+            generate_timetable_internal(user_id)
+            
+            flash(f'Successfully scheduled "{name}" and updated your plan!', 'success')
             return redirect(url_for('index'))
 
     # Get overall stats for the dashboard
     subject_count = db.execute('SELECT COUNT(*) FROM subject WHERE user_id = ?', (user_id,)).fetchone()[0]
     total_topics = db.execute('SELECT COUNT(*) FROM topic WHERE subject_id IN (SELECT id FROM subject WHERE user_id = ?)', (user_id,)).fetchone()[0]
     completed_topics = db.execute('SELECT COUNT(*) FROM topic WHERE completed = 1 AND subject_id IN (SELECT id FROM subject WHERE user_id = ?)', (user_id,)).fetchone()[0]
+    
+    # Check if a study plan exists
+    has_plan = db.execute('SELECT COUNT(*) FROM study_plan WHERE user_id = ?', (user_id,)).fetchone()[0] > 0
     
     progress = int((completed_topics / total_topics) * 100) if total_topics > 0 else 0
     
@@ -135,6 +155,7 @@ def index():
     return render_template('index.html', 
                            username=session.get('username'),
                            subject_count=subject_count,
+                           has_plan=has_plan,
                            progress=progress,
                            quote=quote,
                            tip=tip)
@@ -196,22 +217,15 @@ def delete_subject(subject_id):
     db.commit()
     return redirect(url_for('setup'))
 
-@app.route('/generate_timetable', methods=['POST'])
-def generate_timetable():
-    user_id = get_current_user_id()
-    if not user_id:
-        return redirect(url_for('login'))
-        
+def generate_timetable_internal(user_id):
     db = get_db()
-    
     # Clear existing uncompleted plans to regenerate
     today_str = datetime.now().strftime('%Y-%m-%d')
     db.execute('DELETE FROM study_plan WHERE user_id = ? AND date >= ? AND completed = 0', (user_id, today_str))
     
     subjects = db.execute('SELECT * FROM subject WHERE user_id = ?', (user_id,)).fetchall()
     if not subjects:
-        flash('Please add subjects and syllabus topics first.', 'error')
-        return redirect(url_for('setup'))
+        return False
         
     today = datetime.now().date()
     
@@ -220,9 +234,8 @@ def generate_timetable():
         days_left = (exam_date - today).days
         
         if days_left <= 0:
-            days_left = 1 # Cram it in today if exam is today or past
+            days_left = 1
             
-        # Get uncompleted topics for this subject
         topics = db.execute('SELECT id FROM topic WHERE subject_id = ? AND completed = 0', (s['id'],)).fetchall()
         topics_list = [t['id'] for t in topics]
         
@@ -230,8 +243,6 @@ def generate_timetable():
             continue
             
         random.shuffle(topics_list)
-        
-        # Wisely divide topics across available days before this subject's exam
         days_pool = list(range(days_left))
         random.shuffle(days_pool)
         
@@ -240,9 +251,20 @@ def generate_timetable():
             study_date = (today + timedelta(days=day_offset)).strftime('%Y-%m-%d')
             db.execute('INSERT INTO study_plan (user_id, date, topic_id) VALUES (?, ?, ?)', 
                        (user_id, study_date, t_id))
-                       
     db.commit()
-    flash('Timetable successfully generated based on your subjects and exam dates!', 'success')
+    return True
+
+@app.route('/generate_timetable', methods=['POST'])
+def generate_timetable():
+    user_id = get_current_user_id()
+    if not user_id:
+        return redirect(url_for('login'))
+    
+    if generate_timetable_internal(user_id):
+        flash('Timetable successfully generated!', 'success')
+    else:
+        flash('Please add subjects and syllabus topics first.', 'error')
+        
     return redirect(url_for('timetable'))
 
 @app.route('/timetable', methods=['GET'])
@@ -270,7 +292,8 @@ def timetable():
             grouped_plan[d] = []
         grouped_plan[d].append(row)
         
-    return render_template('timetable.html', plan=grouped_plan)
+    subject_count = db.execute('SELECT COUNT(*) FROM subject WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return render_template('timetable.html', plan=grouped_plan, subject_count=subject_count)
 
 @app.route('/mark_plan_completed/<int:plan_id>', methods=['POST'])
 def mark_plan_completed(plan_id):
