@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Welcome back, {{ username }} <span class="wave">👋</span></h1>
+    <p>Take a deep breath. You are doing great.</p>
+</div>
+
+<div class="grid">
+    <!-- Motivation & Scheduling Section -->
+    <div class="card motivation-card">
+        <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <h3>Daily Inspiration</h3>
+        <p class="quote">"{{ quote }}"</p>
+        
+        <div class="divider"></div>
+        
+        <h4><i class="fa-solid fa-calendar-plus"></i> Schedule New Exam</h4>
+        <form method="POST" action="{{ url_for('index') }}" class="simple-form">
+            <div class="form-group">
+                <input type="text" name="subject_name" required placeholder="Subject Name (e.g. History)">
+            </div>
+            <div class="form-group">
+                <label style="font-size: 0.8rem; color: var(--text-light);">Exam Date</label>
+                <input type="date" name="exam_date" required>
+            </div>
+            <div class="form-group">
+                <textarea name="syllabus_text" rows="3" placeholder="List topics (comma separated)"></textarea>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Add to My Plan</button>
+        </form>
+    </div>
+
+    <!-- Progress & Tip Card -->
+    <div>
+        <div class="card stats-card">
+            <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <h3>Your Pulse</h3>
+            <div class="progress-info">
+                <span class="progress-label">Completion Status</span>
+                <span class="progress-value">{{ progress }}%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: {{ progress }}%;"></div>
+            </div>
+            <p class="stats-detail"><strong>{{ subject_count }}</strong> exams scheduled.</p>
+            <div class="flex gap-1 mt-1">
+                <a href="{{ url_for('timetable') }}" class="btn" style="flex: 1;">Open Tracker</a>
+            </div>
+        </div>
+
+        <div class="card tip-card mt-1">
+            <h4><i class="fa-solid fa-lightbulb"></i> Study Tip</h4>
+            <p class="tip">{{ tip }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-2">
+    <h3>Quick Actions</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <a href="{{ url_for('setup') }}" class="action-card">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Add Subject</span>
+        </a>
+        <a href="{{ url_for('timetable') }}" class="action-card">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Check Schedule</span>
+        </a>
+        <a href="{{ url_for('progress') }}" class="action-card">
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Set Goals</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fadeInDown 0.8s ease-out;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+    
+    .wave {
+        display: inline-block;
+        animation: wave-animation 2.5s infinite;
+        transform-origin: 70% 70%;
+    }
+    
+    .motivation-card {
+        background: linear-gradient(135deg, rgba(79, 209, 197, 0.1), rgba(159, 122, 234, 0.1));
+        border-left: 5px solid var(--primary);
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+    
+    .quote {
+        font-style: italic;
+        font-size: 1.2rem;
+        color: var(--text-main);
+        margin: 1.5rem 0;
+        line-height: 1.4;
+    }
+    
+    .divider {
+        height: 1px;
+        background: var(--border-color);
+        margin: 1.5rem 0;
+    }
+    
+    .tip-card {
+        background: rgba(255, 255, 255, 0.5);
+        border-left: 5px solid var(--accent);
+    }
+    
+    .simple-form .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .simple-form input, .simple-form textarea {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 1rem;
+    }
+
+    .simple-form input:focus, .simple-form textarea:focus {
+        border-color: var(--primary);
+        background: #fff;
+    }
+    
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    
+    .stats-detail {
+        margin-top: 1rem;
+        color: var(--text-light);
+    }
+    
+    @keyframes wave-animation {
+        0% { transform: rotate( 0.0deg) }
+       10% { transform: rotate(14.0deg) }
+       20% { transform: rotate(-8.0deg) }
+       30% { transform: rotate(14.0deg) }
+       40% { transform: rotate(-4.0deg) }
+       50% { transform: rotate(10.0deg) }
+       60% { transform: rotate( 0.0deg) }
+      100% { transform: rotate( 0.0deg) }
+    }
+    
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

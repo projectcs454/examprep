@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="flex justify-between align-center mb-1">
+        <h2><i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Your Syllabus</h2>
+    </div>
+    <p>Organize your subjects and break them down into topics. Assigning a difficulty level helps us create a balanced study plan.</p>
+</div>
+
+<div class="grid">
+    <!-- Add Subject Form -->
+    <div class="card" style="align-self: start;">
+        <h3>Add New Subject</h3>
+        <form method="POST" action="{{ url_for('subjects') }}">
+            <input type="hidden" name="action" value="add_subject">
+            <div class="form-group">
+                <label>Subject Name</label>
+                <input type="text" name="subject_name" required placeholder="e.g. Mathematics, History">
+            </div>
+            <button type="submit" class="btn">Add Subject</button>
+        </form>
+    </div>
+
+    <!-- Add Topic Form -->
+    <div class="card" style="align-self: start;">
+        <h3>Add New Topic</h3>
+        {% if subjects %}
+        <form method="POST" action="{{ url_for('subjects') }}">
+            <input type="hidden" name="action" value="add_topic">
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject_id" required>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Topic Name</label>
+                <input type="text" name="topic_name" required placeholder="e.g. Calculus, World War II">
+            </div>
+            <div class="form-group">
+                <label>Difficulty</label>
+                <select name="difficulty" required>
+                    <option value="Easy">Easy (30 mins)</option>
+                    <option value="Medium">Medium (60 mins)</option>
+                    <option value="Hard">Hard (90 mins)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-secondary">Add Topic</button>
+        </form>
+        {% else %}
+        <p style="color: var(--danger);">Please add a subject first.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Subjects List -->
+{% for s in subjects %}
+<div class="card">
+    <h3 style="border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; display: inline-block;">{{ s.name }}</h3>
+    
+    {% if s.topics %}
+    <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+        {% for t in s.topics %}
+        <div style="background: rgba(255,255,255,0.6); padding: 1rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+            <div class="flex justify-between align-center">
+                <strong style="{% if t.completed %}text-decoration: line-through; color: var(--text-light);{% endif %}">{{ t.name }}</strong>
+                <span class="tag {{ t.difficulty | lower }}">{{ t.difficulty }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="mt-1" style="font-style: italic; color: var(--text-light);">No topics added yet.</p>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <div class="card" style="text-align: center;">
+        <h2><i class="fa-solid fa-seedling" style="color: var(--primary);"></i> Welcome Back</h2>
+        <p>Log in to continue your calm study journey.</p>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group" style="text-align: left;">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group" style="text-align: left;">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Login</button>
+        </form>
+        
+        <p class="mt-1" style="font-size: 0.9rem;">
+            Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary); text-decoration: none;">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

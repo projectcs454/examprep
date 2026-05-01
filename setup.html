@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <h2>Step 1: Setup Your Subjects</h2>
+    <p>Add the subjects you are studying for, set their specific exam dates, and paste or upload the syllabus.</p>
+</div>
+
+<div class="grid">
+    <div class="card" style="align-self: start;">
+        <h3>Add New Subject</h3>
+        <form method="POST" action="{{ url_for('setup') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Subject Name</label>
+                <input type="text" name="subject_name" required placeholder="e.g. Mathematics">
+            </div>
+            <div class="form-group">
+                <label>Exam Date</label>
+                <input type="date" name="exam_date" required>
+            </div>
+            <div class="form-group">
+                <label>Syllabus Topics (Paste one topic per line)</label>
+                <textarea name="syllabus_text" rows="5" placeholder="Chapter 1: Algebra&#10;Chapter 2: Geometry..."></textarea>
+                <small style="color: var(--text-light); display: block; margin-top: 0.5rem;">OR</small>
+            </div>
+            <div class="form-group">
+                <label>Upload Syllabus File (.txt files will be auto-extracted)</label>
+                <input type="file" name="syllabus_file" accept=".txt,.pdf,.doc,.docx" style="padding: 0.5rem 0;">
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Add Subject</button>
+        </form>
+    </div>
+
+    <div>
+        {% if subjects %}
+            <div class="card" style="background: rgba(255,255,255,0.95); border: 2px solid var(--primary);">
+                <h3 style="text-align: center; color: var(--primary-hover);"><i class="fa-solid fa-magic"></i> Ready to Generate?</h3>
+                <p style="text-align: center; margin-bottom: 1rem;">Once you have added all your subjects, generate your combined smart timetable.</p>
+                <form method="POST" action="{{ url_for('generate_timetable') }}">
+                    <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem; padding: 1rem;"><i class="fa-solid fa-calendar-check"></i> Generate My Timetable</button>
+                </form>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem;">Your Added Subjects</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for s in subjects %}
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="flex justify-between align-center mb-1">
+                        <h4 style="font-size: 1.2rem; color: var(--text-main);">{{ s.name }}</h4>
+                        <span class="tag" style="background: #e2e8f0; color: #4a5568;"><i class="fa-regular fa-calendar"></i> Exam: {{ s.exam_date }}</span>
+                    </div>
+                    
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">
+                        <strong>Syllabus length:</strong> {{ s.topics|length }} topics defined
+                    </p>
+                    {% if s.syllabus_file %}
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">
+                        <i class="fa-solid fa-paperclip"></i> File attached: {{ s.syllabus_file }}
+                    </p>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('delete_subject', subject_id=s.id) }}" style="text-align: right;">
+                        <button type="submit" class="btn btn-sm btn-secondary" style="background: var(--danger);"><i class="fa-solid fa-trash"></i> Remove</button>
+                    </form>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; color: var(--text-light); padding: 3rem 1rem;">
+                <i class="fa-solid fa-book-open" style="font-size: 3rem; margin-bottom: 1rem; color: #cbd5e0;"></i>
+                <p>No subjects added yet. Start by adding your first subject on the left.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
