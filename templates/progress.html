@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <h2>Step 3: Progress Track</h2>
+    <p>Watch your progress grow as you check off topics from your timetable.</p>
+    
+    <div style="margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <div class="flex justify-between mb-1">
+            <strong>Overall Master Completion</strong>
+            <strong style="color: var(--primary-hover);">{{ percentage }}%</strong>
+        </div>
+        <div class="progress-container" style="height: 2rem;">
+            <div class="progress-bar" style="width: {{ percentage }}%; font-size: 1rem;">{{ percentage }}%</div>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">
+            You have completed {{ completed }} out of {{ total }} total topics across all subjects.
+        </p>
+    </div>
+</div>
+
+<h3 style="margin-bottom: 1rem;">Subject Breakdown</h3>
+<div class="grid">
+    {% for s in subjects %}
+    <div class="card">
+        <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ s.name }}</h4>
+        <div class="flex justify-between mb-1">
+            <span style="color: var(--text-light); font-size: 0.9rem;">{{ s.completed }} / {{ s.total }} completed</span>
+            <strong style="color: {% if s.rate >= 80 %}var(--success){% elif s.rate >= 40 %}#ed8936{% else %}var(--danger){% endif %};">{{ s.rate }}%</strong>
+        </div>
+        <div class="progress-container" style="height: 0.75rem; margin: 0;">
+            <div class="progress-bar" style="width: {{ s.rate }}%; background: {% if s.rate >= 80 %}var(--success){% elif s.rate >= 40 %}#ed8936{% else %}var(--danger){% endif %};"></div>
+        </div>
+        
+        {% if s.rate < 50 %}
+        <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--danger); background: rgba(252, 129, 129, 0.1); padding: 0.5rem; border-radius: 4px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Needs more focus.
+        </div>
+        {% else %}
+        <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--success); background: rgba(104, 211, 145, 0.1); padding: 0.5rem; border-radius: 4px;">
+            <i class="fa-solid fa-thumbs-up"></i> Doing great!
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

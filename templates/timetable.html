@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="flex justify-between align-center">
+        <h2>Step 2: Your Smart Timetable</h2>
+        {% if plan %}
+        <form method="POST" action="{{ url_for('generate_timetable') }}">
+            <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-rotate"></i> Regenerate Timetable</button>
+        </form>
+        {% endif %}
+    </div>
+    <p>This plan wisely divides your syllabus leading up to each specific subject's exam date. Not satisfied? Hit Regenerate to shuffle the daily distribution!</p>
+</div>
+
+{% if plan %}
+<div style="display: flex; flex-direction: column; gap: 2rem;">
+    {% for date_str, tasks in plan.items() %}
+    <div>
+        <h4 style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--primary-hover); font-size: 1.2rem;">
+            <i class="fa-regular fa-calendar-check"></i> {{ date_str }}
+        </h4>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+            {% for task in tasks %}
+            <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 8px; border-left: 4px solid {% if task.completed %}var(--success){% else %}var(--primary){% endif %}; position: relative;">
+                
+                <div class="flex justify-between align-center mb-1">
+                    <span class="tag" style="background: #e2e8f0; color: #4a5568;">{{ task.subject_name }}</span>
+                    {% if not task.completed %}
+                    <form method="POST" action="{{ url_for('mark_plan_completed', plan_id=task.plan_id) }}">
+                        <button type="submit" class="btn btn-sm"><i class="fa-solid fa-check"></i> Mark Done</button>
+                    </form>
+                    {% else %}
+                    <span style="color: var(--success); font-weight: bold;"><i class="fa-solid fa-check-circle"></i> Done</span>
+                    {% endif %}
+                </div>
+
+                <strong style="font-size: 1.1rem; {% if task.completed %}text-decoration: line-through; color: var(--text-light);{% endif %}">{{ task.topic_name }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 1rem;">
+    <i class="fa-regular fa-calendar" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 1rem;"></i>
+    <h3>No Timetable Generated Yet</h3>
+    <p style="margin-bottom: 1.5rem;">Go to Setup Subjects to add your syllabus, then generate your plan.</p>
+    <a href="{{ url_for('setup') }}" class="btn">Go to Setup</a>
+</div>
+{% endif %}
+{% endblock %}
