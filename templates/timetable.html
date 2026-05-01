@@ -47,8 +47,17 @@
 <div class="card" style="text-align: center; padding: 4rem 1rem;">
     <i class="fa-regular fa-calendar" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 1rem;"></i>
     <h3>No Timetable Generated Yet</h3>
-    <p style="margin-bottom: 1.5rem;">Go to Setup Subjects to add your syllabus, then generate your plan.</p>
-    <a href="{{ url_for('setup') }}" class="btn">Go to Setup</a>
+    {% if subject_count > 0 %}
+    <p style="margin-bottom: 1.5rem;">You have added subjects! Now, click below to wisely divide your topics across the remaining days.</p>
+    <form method="POST" action="{{ url_for('generate_timetable') }}">
+        <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            <i class="fa-solid fa-magic"></i> Generate My Smart Timetable
+        </button>
+    </form>
+    {% else %}
+    <p style="margin-bottom: 1.5rem;">Add your subjects and syllabus first on the Dashboard.</p>
+    <a href="{{ url_for('index') }}" class="btn">Go to Dashboard</a>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

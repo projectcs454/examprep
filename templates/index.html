@@ -16,7 +16,7 @@
         <div class="divider"></div>
         
         <h4><i class="fa-solid fa-calendar-plus"></i> Schedule New Exam</h4>
-        <form method="POST" action="{{ url_for('index') }}" class="simple-form">
+        <form method="POST" action="{{ url_for('index') }}" class="simple-form" enctype="multipart/form-data">
             <div class="form-group">
                 <input type="text" name="subject_name" required placeholder="Subject Name (e.g. History)">
             </div>
@@ -26,6 +26,10 @@
             </div>
             <div class="form-group">
                 <textarea name="syllabus_text" rows="3" placeholder="List topics (comma separated)"></textarea>
+            </div>
+            <div class="form-group">
+                <label style="font-size: 0.75rem; color: var(--text-light);">OR Upload Syllabus (.txt)</label>
+                <input type="file" name="syllabus_file" accept=".txt" class="file-input">
             </div>
             <button type="submit" class="btn" style="width: 100%;">Add to My Plan</button>
         </form>
@@ -44,8 +48,15 @@
                 <div class="progress-bar" style="width: {{ progress }}%;"></div>
             </div>
             <p class="stats-detail"><strong>{{ subject_count }}</strong> exams scheduled.</p>
-            <div class="flex gap-1 mt-1">
-                <a href="{{ url_for('timetable') }}" class="btn" style="flex: 1;">Open Tracker</a>
+            <div class="flex gap-1 mt-1" style="flex-direction: column;">
+                {% if subject_count > 0 and not has_plan %}
+                <form method="POST" action="{{ url_for('generate_timetable') }}" style="width: 100%;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--primary-hover);">
+                        <i class="fa-solid fa-magic"></i> Generate My Study Plan
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{{ url_for('timetable') }}" class="btn" style="width: 100%; text-align: center;">Open Tracker</a>
             </div>
         </div>
 
@@ -136,6 +147,13 @@
     .simple-form input:focus, .simple-form textarea:focus {
         border-color: var(--primary);
         background: #fff;
+    }
+
+    .file-input {
+        font-size: 0.8rem;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        background: transparent !important;
     }
     
     .progress-info {
